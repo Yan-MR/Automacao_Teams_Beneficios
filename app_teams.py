@@ -15,6 +15,9 @@ from ttkbootstrap.dialogs import Querybox
 from playwright.sync_api import sync_playwright
 from PIL import Image, ImageTk
 
+# --- A TRAVA DE PORTABILIDADE (Deixa o .exe rodar em qualquer PC) ---
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+
 # --- FUNÇÃO MÁGICA PARA A LOGO NO .EXE ---
 def resource_path(relative_path):
     try:
