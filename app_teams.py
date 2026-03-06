@@ -263,7 +263,7 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                 except:
                     data_postagem = str(row.get('Data de Postagem', 'N/D')).split(' ')[0]
                     
-                primeiro_nome = nome.split()[0].capitalize() if nome else "Colaborador"
+                primeiro_nome = nome.split()[0].capitalize() if nome and nome.lower() != 'nan' else "Colaborador"
                 prefixo_email = email_destino.split('@')[0]
                 
                 # Substitui a tag em TODO o texto, permitindo uso na mensagem personalizada
@@ -395,7 +395,7 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
 
 class AppTeams(tb.Window):
     def __init__(self):
-        super().__init__(themename="litera") 
+        super().__init__(themename="yeti") 
         self.title("Robô Envio Teams Alelo") 
         self.geometry("1200x850") 
         self.resizable(False, False)
@@ -435,7 +435,7 @@ class AppTeams(tb.Window):
         lbl_subtitulo = tb.Label(frame_titles, text="Módulo de Disparos - Cartão Alelo", font=("Segoe UI", 10), foreground="gray")
         lbl_subtitulo.pack(anchor=W)
         
-        btn_ajuda = tb.Button(frame_header, text="Como utilizar❓", bootstyle="info-outline", command=self.mostrar_ajuda)
+        btn_ajuda = tb.Button(frame_header, text="Como utilizar❓", bootstyle="primary", command=self.mostrar_ajuda)
         btn_ajuda.pack(side=RIGHT, anchor=N)
         
         frame_rodape = tb.Frame(frame_main)
@@ -456,7 +456,7 @@ class AppTeams(tb.Window):
         frame_login.pack(fill=X, pady=(0, 15), ipadx=5, ipady=5)
         lbl_logado = tb.Label(frame_login, textvariable=self.var_usuario, font=("Segoe UI", 11, "bold"))
         lbl_logado.pack(anchor=W, padx=15, pady=(10, 5))
-        self.btn_login = tb.Button(frame_login, text="🔌 Conectar Nova Conta", bootstyle="outline-primary", command=self.iniciar_processo_login)
+        self.btn_login = tb.Button(frame_login, text="🔌 Conectar Nova Conta", bootstyle="primary", command=self.iniciar_processo_login)
         self.btn_login.pack(anchor=W, padx=15, pady=(0, 10))
 
         frame_arquivo = tb.LabelFrame(frame_left, text=" 2. Base de Disparos ")
@@ -465,13 +465,13 @@ class AppTeams(tb.Window):
         frame_botoes_arquivo = tb.Frame(frame_arquivo)
         frame_botoes_arquivo.pack(anchor=W, fill=X, padx=15, pady=(10, 5))
         
-        self.btn_procurar = tb.Button(frame_botoes_arquivo, text="📂 Escolher Planilha", bootstyle=SECONDARY, command=self.selecionar_arquivo)
+        self.btn_procurar = tb.Button(frame_botoes_arquivo, text="📂 Escolher Planilha", bootstyle="primary", command=self.selecionar_arquivo)
         self.btn_procurar.pack(side=LEFT, padx=(0, 10))
         
-        self.btn_limpar = tb.Button(frame_botoes_arquivo, text="🧹 Limpar Status", bootstyle="warning-outline", command=self.limpar_status_planilha)
+        self.btn_limpar = tb.Button(frame_botoes_arquivo, text="🧹 Limpar Status", bootstyle="warning", command=self.limpar_status_planilha)
         self.btn_limpar.pack(side=LEFT)
         
-        self.lbl_caminho = tb.Label(frame_arquivo, text="Nenhuma planilha (.xlsx) selecionada", font=("Segoe UI", 9, "italic"), foreground="gray", wraplength=280)
+        self.lbl_caminho = tb.Label(frame_arquivo, text="Nenhuma planilha (.xlsx) selecionada", font=("Segoe UI", 9, "italic"), foreground="black", wraplength=280)
         self.lbl_caminho.pack(anchor=W, fill=X, expand=True, padx=15, pady=(0, 10))
 
         frame_tipo = tb.LabelFrame(frame_left, text=" 3. Tipo de Comunicação ")
@@ -483,7 +483,6 @@ class AppTeams(tb.Window):
         tb.Radiobutton(frame_tipo, text="Re-aviso (Hub SCS)", variable=self.var_tipo_msg, value="reaviso_scs", command=self.trocar_aba).pack(anchor=W, padx=15, pady=5)
         tb.Radiobutton(frame_tipo, text="Re-aviso (Hub Berrini)", variable=self.var_tipo_msg, value="reaviso_berrini", command=self.trocar_aba).pack(anchor=W, padx=15, pady=5)
         tb.Separator(frame_tipo).pack(fill=X, padx=15, pady=5)
-        # --- O NOVO BOTÃO DE MENSAGEM PERSONALIZADA ---
         tb.Radiobutton(frame_tipo, text="Mensagem Personalizada (Livre)", variable=self.var_tipo_msg, value="personalizada", command=self.trocar_aba).pack(anchor=W, padx=15, pady=(5, 10))
 
         frame_right = tb.Frame(frame_content)
@@ -492,7 +491,7 @@ class AppTeams(tb.Window):
         frame_msg = tb.LabelFrame(frame_right, text=" 4. Pré-visualização e Edição (Texto Simples) ")
         frame_msg.pack(fill=BOTH, expand=True, ipadx=5, ipady=5)
         
-        lbl_dica = tb.Label(frame_msg, text="💡 DICA: Escreva normalmente. Para negrito, use *asteriscos*. O robô ajusta as linhas automaticamente.", font=("Segoe UI", 9, "bold"), bootstyle=INFO)
+        lbl_dica = tb.Label(frame_msg, text="💡 DICA: Escreva normalmente. Para negrito, use *asteriscos*. O robô ajusta as linhas automaticamente.", font=("Segoe UI", 9, "bold"), bootstyle=PRIMARY)
         lbl_dica.pack(anchor=W, padx=15, pady=(5,0))
         
         scroll_txt = tb.Scrollbar(frame_msg)
