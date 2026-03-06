@@ -1,0 +1,25 @@
+# Ignorar bases de dados e planilhas (Segurança de Dados da Empresa)
+*.xlsx
+*.xls
+*.csv
+
+# Ignorar o Ambiente Virtual (Isso vai sumir com os 10.000 arquivos!)
+.venv/
+venv/
+env/
+
+# Ignorar dados de sessão do Playwright/Chrome (Privacidade)
+perfil_chrome/
+config_teams.json
+estado_teams.json
+config_email_beneficios.json
+
+# Ignorar arquivos gerados pelo PyInstaller (Os executáveis .exe são muito pesados pro GitHub)
+build/
+dist/
+*.spec
+
+# Ignorar cache do sistema Python
+__pycache__/
+*.pyc
+*.pyo

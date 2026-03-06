@@ -1,0 +1,15 @@
+Boa tarde.
+Olá {primeiro_nome}, tudo bem?
+
+É um prazer tê-lo em nossa CIA como um de nossos (as) colaboradores (as), nós do time de benefícios temos uma excelente noticia para você!
+Informamos que o seu cartão *Alelo*, foi entregue em nosso HUB SCS e iremos redireciona-lo via SEDEX ao endereço cadastrado em sistema.
+
+Segue abaixo código de rastreio, para acessar, basta entrar no link: https://www.correios.com.br/
+
+[TABELA_RASTREIO]
+
+Obs.: Esta é uma mensagem automática. Por favor não responda este e-mail.
+
+Atenciosamente,
+*Grupo Casas Bahia - Gente, Gestão e Sustentabilidade*
+Operações de Benefícios
