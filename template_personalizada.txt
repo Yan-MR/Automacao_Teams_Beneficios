@@ -1,0 +1,7 @@
+Olá {primeiro_nome}, tudo bem?
+
+[Apague este texto e digite o seu comunicado aqui. Você pode usar a tag {primeiro_nome} quantas vezes quiser no texto para o robô trocar pelo nome da pessoa.]
+
+Atenciosamente; 
+*Operações Benefícios*
+adm.beneficios@casasbahia.com.br

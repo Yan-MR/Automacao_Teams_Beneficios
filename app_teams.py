@@ -40,7 +40,8 @@ ARQUIVOS_TEMPLATES = {
     "scs": os.path.join(PASTA_BASE, "template_scs.txt"),
     "berrini": os.path.join(PASTA_BASE, "template_berrini.txt"),
     "reaviso_scs": os.path.join(PASTA_BASE, "template_reaviso_scs.txt"),
-    "reaviso_berrini": os.path.join(PASTA_BASE, "template_reaviso_berrini.txt")
+    "reaviso_berrini": os.path.join(PASTA_BASE, "template_reaviso_berrini.txt"),
+    "personalizada": os.path.join(PASTA_BASE, "template_personalizada.txt") # --- NOVO ARQUIVO DE TEMPLATE ---
 }
 
 TEXTOS_PADROES = {
@@ -62,7 +63,7 @@ Operações de Benefícios""",
 
     "scs": """Olá {primeiro_nome}, tudo bem?
     
-Informamos que o seu *Cartão Alelo Refeição e ou Alimentação* foi recebido em nosso Hub e está disponível para a retirada.
+Informamos que o seu *Cartão Alelo* foi recebido em nosso Hub e está disponível para a retirada.
 
 📌 *Atenção colaboradores alocados sistemicamente no Hub SCS – Filial 1580, segue abaixo informações de retirada.*
 
@@ -93,7 +94,7 @@ adm.beneficios@casasbahia.com.br""",
 Informamos que o seu *Cartão Alelo* foi recebido em nosso Hub e encontra-se disponível para retirada conforme as orientações abaixo.
 
 📌 *Colaboradores alocados sistemicamente na Estação Casas Bahia (Berrini) – Filiais 01 | 650 | 1968:*
-A retirada deve ocorrer no dia *27/02/2026*, de forma pontual, conforme a ida de um de nossos portadores ao local.
+A retirada deve ocorrer no dia *06/03/2026*, de forma pontual, conforme a ida de um de nossos portadores ao local.
 
 📍 *Local de retirada:*
 *Hub Estação Casas Bahia (Berrini) - 4º andar - sala de Bem-Estar (ao lado do Espaço Viver Bem)*
@@ -120,7 +121,7 @@ adm.beneficios@casasbahia.com.br""",
  
 Identificamos que você ainda não realizou a retirada do seu Cartão Alelo.
 
-Gostaríamos de lembrá-lo(a) que o seu cartão está disponível para retirada hoje, 04/03/2026.
+Gostaríamos de lembrá-lo(a) que o seu cartão está disponível para retirada hoje, 06/03/2026.
  
 📍 *Local de retirada:*
 Hub SCS – 2º andar – Mesa 636.
@@ -136,13 +137,22 @@ adm.beneficios@casasbahia.com.br""",
  
 Identificamos que você ainda não realizou a retirada do seu Cartão Alelo.
 
-Gostaríamos de lembrá-lo(a) que o seu cartão está disponível para retirada hoje, 04/03/2026.
+Gostaríamos de lembrá-lo(a) que o seu cartão está disponível para retirada hoje, 06/03/2026.
  
 📍 *Local de retirada:*
 Hub Estação Casas Bahia (Berrini) - 4º andar - sala de Bem-Estar (ao lado do Espaço Viver Bem)
  
 🕒 *Horário de atendimento:*
 09h às 15h.
+
+Atenciosamente; 
+*Operações Benefícios*
+adm.beneficios@casasbahia.com.br""",
+
+    # --- NOVO TEXTO PADRÃO PARA MENSAGEM PERSONALIZADA ---
+    "personalizada": """Olá {primeiro_nome}, tudo bem?
+
+[Apague este texto e digite o seu comunicado aqui. Você pode usar a tag {primeiro_nome} quantas vezes quiser no texto para o robô trocar pelo nome da pessoa.]
 
 Atenciosamente; 
 *Operações Benefícios*
@@ -239,10 +249,9 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
             lista_falhas = []
             
             for index, row in df_pendentes.iterrows():
-                # Garante que o e-mail venha como Texto e não quebre o robô
                 email_destino = str(row.get('Email', '')).strip()
                 if not email_destino or email_destino.lower() == 'nan':
-                    continue # Se a linha estiver em branco, ele pula para não travar
+                    continue 
                     
                 nome = str(row.get('Nome', 'Colaborador')).strip()
                 rastreio = str(row.get('Código de Rastreio', 'N/D'))
@@ -257,6 +266,7 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                 primeiro_nome = nome.split()[0].capitalize() if nome else "Colaborador"
                 prefixo_email = email_destino.split('@')[0]
                 
+                # Substitui a tag em TODO o texto, permitindo uso na mensagem personalizada
                 texto_preparado = template_texto_puro.replace("{primeiro_nome}", primeiro_nome)
                 html_final = texto_preparado.replace('\n', '<br>')
                 html_final = re.sub(r'\*(.*?)\*', r'<b>\1</b>', html_final)
@@ -292,19 +302,15 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                     barra_pesquisa = page.locator('[data-tid="AUTOSUGGEST_INPUT"]')
                     barra_pesquisa.wait_for(state="visible", timeout=7000) 
                     
-                    # --- BLINDAGEM CONTRA O MOUSE (Digitação com Foco Trancado) ---
                     barra_pesquisa.click(force=True)
                     barra_pesquisa.focus()
                     
-                    # Usa atalhos direcionados apenas para a barra (ignorando o resto da tela)
                     barra_pesquisa.press("Control+a")
                     barra_pesquisa.press("Backspace")
                     time.sleep(0.5) 
                     
-                    # Digita sentindo cada tecla (Isso aciona o dropdown do Teams perfeitamente)
                     barra_pesquisa.type(email_destino, delay=50)
                     time.sleep(2)
-                    # -------------------------------------------------------------
                     
                     opcao_correta = page.locator('div[role="option"]').filter(has_text=prefixo_email).first
                     opcao_correta.wait_for(state="visible", timeout=7000) 
@@ -331,7 +337,7 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                     
                     time.sleep(1) 
                     
-                    caixa_texto.focus() # Tranca o foco de novo antes de colar
+                    caixa_texto.focus() 
                     page.keyboard.press("Control+v")
                     time.sleep(3) 
                     
@@ -360,7 +366,6 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                     wb.save(caminho_arquivo)
                     lista_falhas.append(str(nome))
                     
-                    # --- LIMPEZA DE SEGURANÇA SE FALHAR ---
                     try:
                         barra_pesquisa.click(force=True)
                         barra_pesquisa.press("Control+a")
@@ -385,7 +390,6 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
 
     except Exception as e:
         print(f"Erro Fatal: {e}")
-        # Mostra o erro exato na tela pra você saber o que quebrou!
         app_gui.atualizar_status(f"Erro Crítico: {str(e)[:50]}...", DANGER)
         app_gui.btn_iniciar.config(state="normal")
 
@@ -393,7 +397,7 @@ class AppTeams(tb.Window):
     def __init__(self):
         super().__init__(themename="litera") 
         self.title("Robô Envio Teams Alelo") 
-        self.geometry("1000x850") 
+        self.geometry("1200x850") 
         self.resizable(False, False)
         
         caminho_icone = resource_path("logo.png")
@@ -420,10 +424,19 @@ class AppTeams(tb.Window):
         frame_main = tb.Frame(self, padding=20)
         frame_main.pack(fill=BOTH, expand=True)
         
-        lbl_titulo = tb.Label(frame_main, text="Automação Microsoft Teams", font=("Segoe UI", 20, "bold"), bootstyle=PRIMARY)
-        lbl_titulo.pack(pady=(0, 2))
-        lbl_subtitulo = tb.Label(frame_main, text="Módulo de Disparos - Cartão Alelo", font=("Segoe UI", 10), foreground="gray")
-        lbl_subtitulo.pack(pady=(0, 15))
+        frame_header = tb.Frame(frame_main)
+        frame_header.pack(fill=X, pady=(0, 15))
+        
+        frame_titles = tb.Frame(frame_header)
+        frame_titles.pack(side=LEFT)
+        
+        lbl_titulo = tb.Label(frame_titles, text="Automação Microsoft Teams", font=("Segoe UI", 20, "bold"), bootstyle=PRIMARY)
+        lbl_titulo.pack(anchor=W)
+        lbl_subtitulo = tb.Label(frame_titles, text="Módulo de Disparos - Cartão Alelo", font=("Segoe UI", 10), foreground="gray")
+        lbl_subtitulo.pack(anchor=W)
+        
+        btn_ajuda = tb.Button(frame_header, text="Como utilizar❓", bootstyle="info-outline", command=self.mostrar_ajuda)
+        btn_ajuda.pack(side=RIGHT, anchor=N)
         
         frame_rodape = tb.Frame(frame_main)
         frame_rodape.pack(fill=X, side=BOTTOM)
@@ -468,7 +481,10 @@ class AppTeams(tb.Window):
         tb.Radiobutton(frame_tipo, text="Retirada Presencial (Hub Berrini)", variable=self.var_tipo_msg, value="berrini", command=self.trocar_aba).pack(anchor=W, padx=15, pady=5)
         tb.Separator(frame_tipo).pack(fill=X, padx=15, pady=5)
         tb.Radiobutton(frame_tipo, text="Re-aviso (Hub SCS)", variable=self.var_tipo_msg, value="reaviso_scs", command=self.trocar_aba).pack(anchor=W, padx=15, pady=5)
-        tb.Radiobutton(frame_tipo, text="Re-aviso (Hub Berrini)", variable=self.var_tipo_msg, value="reaviso_berrini", command=self.trocar_aba).pack(anchor=W, padx=15, pady=(5, 10))
+        tb.Radiobutton(frame_tipo, text="Re-aviso (Hub Berrini)", variable=self.var_tipo_msg, value="reaviso_berrini", command=self.trocar_aba).pack(anchor=W, padx=15, pady=5)
+        tb.Separator(frame_tipo).pack(fill=X, padx=15, pady=5)
+        # --- O NOVO BOTÃO DE MENSAGEM PERSONALIZADA ---
+        tb.Radiobutton(frame_tipo, text="Mensagem Personalizada (Livre)", variable=self.var_tipo_msg, value="personalizada", command=self.trocar_aba).pack(anchor=W, padx=15, pady=(5, 10))
 
         frame_right = tb.Frame(frame_content)
         frame_right.pack(side=LEFT, fill=BOTH, expand=True)
@@ -486,6 +502,20 @@ class AppTeams(tb.Window):
         scroll_txt.config(command=self.txt_mensagem.yview)
         
         self.txt_mensagem.insert("1.0", carregar_template("sedex"))
+
+    def mostrar_ajuda(self):
+        texto_ajuda = (
+            "PASSO A PASSO DE USO:\n\n"
+            "1. AUTENTICAÇÃO:\n"
+            "Clique em 'Conectar Nova Conta'. Faça o login normalmente no navegador e feche a janela assim que o Teams carregar.\n\n"
+            "2. PLANILHA DE DADOS:\n"
+            "Clique em 'Escolher Planilha' e selecione a sua base. A planilha precisa ter a coluna 'Enviar' marcada com 'x'. (O robô cria uma cópia de segurança automática para não corromper sua base original!).\n\n"
+            "3. MENSAGEM:\n"
+            "Escolha o tipo de disparo. Você pode editar o texto na tela preta. Se usar a opção 'Mensagem Personalizada', você pode escrever o que quiser e usar a tag {primeiro_nome} para o robô chamar o colaborador pelo nome automaticamente.\n\n"
+            "4. EXECUTAR:\n"
+            "Clique em 'Iniciar Disparos' e deixe o mouse parado. Dica: Se quiser testar o robô de novo, clique em 'Limpar Status' para apagar os registros da planilha."
+        )
+        messagebox.showinfo("Guia Rápido - Robô do Teams", texto_ajuda)
 
     def trocar_aba(self):
         texto_atual = self.txt_mensagem.get("1.0", tk.END).strip()
@@ -551,7 +581,6 @@ class AppTeams(tb.Window):
             messagebox.showwarning("Aviso", "Por favor, selecione a planilha de pendências antes de iniciar o envio.")
             return
             
-        # --- A MÁGICA DA CÓPIA DE SEGURANÇA ---
         diretorio = os.path.dirname(self.caminho_planilha)
         nome_arquivo = os.path.basename(self.caminho_planilha)
         
@@ -567,7 +596,6 @@ class AppTeams(tb.Window):
             except Exception as e:
                 messagebox.showerror("Erro de Cópia", f"Não foi possível criar a cópia de segurança:\n{e}")
                 return
-        # ---------------------------------------
 
         texto_atual = self.txt_mensagem.get("1.0", tk.END).strip()
         salvar_template(self.tipo_ativo, texto_atual) 
