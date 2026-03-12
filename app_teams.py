@@ -41,7 +41,7 @@ ARQUIVOS_TEMPLATES = {
     "berrini": os.path.join(PASTA_BASE, "template_berrini.txt"),
     "reaviso_scs": os.path.join(PASTA_BASE, "template_reaviso_scs.txt"),
     "reaviso_berrini": os.path.join(PASTA_BASE, "template_reaviso_berrini.txt"),
-    "personalizada": os.path.join(PASTA_BASE, "template_personalizada.txt") # --- NOVO ARQUIVO DE TEMPLATE ---
+    "personalizada": os.path.join(PASTA_BASE, "template_personalizada.txt") 
 }
 
 TEXTOS_PADROES = {
@@ -149,7 +149,6 @@ Atenciosamente;
 *Operações Benefícios*
 adm.beneficios@casasbahia.com.br""",
 
-    # --- NOVO TEXTO PADRÃO PARA MENSAGEM PERSONALIZADA ---
     "personalizada": """Olá {primeiro_nome}, tudo bem?
 
 [Apague este texto e digite o seu comunicado aqui. Você pode usar a tag {primeiro_nome} quantas vezes quiser no texto para o robô trocar pelo nome da pessoa.]
@@ -266,7 +265,6 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                 primeiro_nome = nome.split()[0].capitalize() if nome and nome.lower() != 'nan' else "Colaborador"
                 prefixo_email = email_destino.split('@')[0]
                 
-                # Substitui a tag em TODO o texto, permitindo uso na mensagem personalizada
                 texto_preparado = template_texto_puro.replace("{primeiro_nome}", primeiro_nome)
                 html_final = texto_preparado.replace('\n', '<br>')
                 html_final = re.sub(r'\*(.*?)\*', r'<b>\1</b>', html_final)
@@ -309,14 +307,78 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                     barra_pesquisa.press("Backspace")
                     time.sleep(0.5) 
                     
+                    achou_pessoa = False
+
+                    # ====================================================================
+                    # TENTATIVA 1: BUSCA POR E-MAIL E CLIQUE ESPECÍFICO
+                    # ====================================================================
                     barra_pesquisa.type(email_destino, delay=50)
-                    time.sleep(2)
+                    time.sleep(3) # Tempo para o Teams carregar a lista do AD
                     
-                    opcao_correta = page.locator('div[role="option"]').filter(has_text=prefixo_email).first
-                    opcao_correta.wait_for(state="visible", timeout=7000) 
-                    opcao_correta.click()
-                    time.sleep(1.5) 
-                    
+                    try:
+                        # Tenta clicar no card que tenha o NOME COMPLETO da pessoa (ignora a pílula pequena)
+                        opcao_correta = page.locator('div[role="option"]').filter(has_text=re.compile(re.escape(nome), re.IGNORECASE)).first
+                        opcao_correta.wait_for(state="visible", timeout=2000)
+                        opcao_correta.click()
+                        time.sleep(1.5) 
+                        achou_pessoa = True
+                    except:
+                        try:
+                            # Tenta clicar no card que tenha o PREFIXO DO EMAIL (ex: william.bernst)
+                            opcao_correta = page.locator('div[role="option"]').filter(has_text=re.compile(re.escape(prefixo_email), re.IGNORECASE)).first
+                            opcao_correta.wait_for(state="visible", timeout=2000)
+                            opcao_correta.click()
+                            time.sleep(1.5) 
+                            achou_pessoa = True
+                        except:
+                            pass # Falhou a busca por E-mail, vai para a Tentativa 2
+                            
+                    # ====================================================================
+                    # TENTATIVA 2: SE FALHOU O E-MAIL, BUSCA PELO NOME COMPLETO
+                    # ====================================================================
+                    if not achou_pessoa:
+                        print(f"Não achou por e-mail. Tentando pelo Nome Completo: {nome}")
+                        
+                        # Limpa a barra
+                        barra_pesquisa.click(force=True)
+                        barra_pesquisa.focus()
+                        barra_pesquisa.press("Control+a")
+                        barra_pesquisa.press("Backspace")
+                        time.sleep(0.5)
+                        
+                        # Digita o Nome Completo
+                        barra_pesquisa.type(str(nome), delay=50)
+                        time.sleep(4) # Espera maior pro AD buscar o nome
+                        
+                        try:
+                            # Tenta clicar no resultado que tem o nome exato
+                            opcao_correta = page.locator('div[role="option"]').filter(has_text=re.compile(re.escape(nome), re.IGNORECASE)).first
+                            opcao_correta.wait_for(state="visible", timeout=2000)
+                            opcao_correta.click()
+                            time.sleep(1.5)
+                            achou_pessoa = True
+                        except:
+                            try:
+                                # Força bruta segura: pega a primeira opção que tenha pelo menos o PRIMEIRO NOME
+                                primeiro_nome_busca = str(nome).strip().split()[0]
+                                opcao_correta = page.locator('div[role="option"]').filter(has_text=re.compile(re.escape(primeiro_nome_busca), re.IGNORECASE)).first
+                                opcao_correta.wait_for(state="visible", timeout=2000)
+                                opcao_correta.click()
+                                time.sleep(1.5)
+                                achou_pessoa = True
+                            except:
+                                pass # Falhou em tudo.
+
+                    # ====================================================================
+                    # TRAVA DE SEGURANÇA: ABORTAR SE NÃO ACHOU NINGUÉM
+                    # ====================================================================
+                    if not achou_pessoa:
+                        # O raise Exception pula direto para o bloco 'except' lá embaixo,
+                        # impedindo que o código desça e digite a mensagem no chat atual.
+                        raise Exception(f"Pessoa '{nome}' não encontrada na busca. Abortando envio.")
+
+
+                    # Se chegou aqui, é porque ele achou a pessoa e clicou com sucesso!
                     caixa_texto = page.locator('[data-tid="ckeditor"]')
                     caixa_texto.wait_for(state="visible", timeout=7000) 
                     
@@ -361,11 +423,12 @@ def robo_disparos(app_gui, caminho_arquivo, template_texto_puro):
                     enviados += 1
                     
                 except Exception as e:
-                    print(f"Erro em {nome}: {e}")
+                    print(f"Falha ao enviar para {nome}: {e}")
                     sh_ROBO.cell(row=linha_excel, column=coluna_status).value = "Não Encontrado"
                     wb.save(caminho_arquivo)
                     lista_falhas.append(str(nome))
                     
+                    # Limpa a sujeira da barra de pesquisa e fecha o popup pra não travar o próximo
                     try:
                         barra_pesquisa.click(force=True)
                         barra_pesquisa.press("Control+a")
